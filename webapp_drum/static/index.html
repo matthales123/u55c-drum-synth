@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Drum Synth | U55C Accelerator Lab</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+
+  <header class="topbar">
+    <div class="topbar-main">
+      <div class="brand-wrap">
+        <div class="brand">U55C Drum Synthesis Lab</div>
+        <div class="subtitle">CPU Audio Synthesis, FPGA Runtime Control, Documentation, and Architecture Map</div>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button">Dark Mode</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="lab">Project Lab</button>
+    <button class="tab" data-tab="fpga">FPGA Runtime</button>
+    <button class="tab" data-tab="docs">Project Docs</button>
+    <button class="tab" data-tab="diagram">Block Diagram</button>
+  </nav>
+
+  <main>
+    <section id="tab-lab" class="tab-panel active">
+      <div class="grid">
+        <article class="card">
+          <h2>Drum Synthesis Workbench (CPU + FPGA)</h2>
+          <div class="controls">
+            <label>Length <input id="length" type="number" min="512" max="500000" value="65536" /></label>
+            <label>Sample Rate <input id="sample-rate" type="number" min="8000" max="192000" value="48000" /></label>
+            <label>BPM <input id="bpm" type="number" min="40" max="280" step="0.1" value="120" /></label>
+            <label>Seed <input id="seed" type="number" value="1" /></label>
+            <label>Kick <input id="kick" type="number" step="0.05" min="0" max="1" value="0.9" /></label>
+            <label>Snare <input id="snare" type="number" step="0.05" min="0" max="1" value="0.65" /></label>
+            <label>Hat <input id="hat" type="number" step="0.05" min="0" max="1" value="0.45" /></label>
+          </div>
+          <div class="actions-row">
+            <button id="synth-btn" class="btn primary">Synthesize CPU + FPGA</button>
+            <button id="play-cpu-btn" class="btn">Play CPU Mix</button>
+            <button id="play-fpga-btn" class="btn">Play FPGA Mix</button>
+          </div>
+          <p id="synth-meta" class="meta">Ready.</p>
+          <div class="trace-layout">
+            <div class="trace-col">
+              <h3>CPU Waveform</h3>
+              <canvas id="wave-canvas" width="900" height="300"></canvas>
+            </div>
+            <div class="trace-col">
+              <h3>FPGA Waveform (Kernel Model)</h3>
+              <canvas id="wave-fpga-canvas" width="900" height="300"></canvas>
+            </div>
+          </div>
+          <p id="fpga-synth-meta" class="meta">FPGA synthesis idle.</p>
+          <h3>Synthesis Summary</h3>
+          <p class="hint">Both CPU and FPGA-model waveforms are generated together so you can compare timing and sound output directly.</p>
+          <pre id="runtime-summary" class="output small">Run synthesis to populate CPU/FPGA timing and playback-ready buffers.</pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="tab-fpga" class="tab-panel">
+      <div class="grid two-col">
+        <article class="card">
+          <h2>FPGA Control + Benchmark</h2>
+          <div class="controls">
+            <label>Mode
+              <select id="bench-mode">
+                <option value="dry-run">dry-run</option>
+                <option value="hw" selected>hw</option>
+              </select>
+            </label>
+            <label>Elements <input id="elements" type="number" min="1" value="65536" /></label>
+            <label>Iterations <input id="iterations" type="number" min="1" max="50" value="1" /></label>
+            <label>Device <input id="device" type="text" value="0" /></label>
+            <label>Kernel <input id="kernel" type="text" value="drum_synth" /></label>
+          </div>
+          <div class="controls stack">
+            <label>XCLBIN Path <input id="xclbin" type="text" placeholder="From project.env if blank" /></label>
+          </div>
+          <div class="actions-row">
+            <button id="status-btn" class="btn">FPGA Status</button>
+            <button id="program-btn" class="btn warning">Program FPGA</button>
+            <button id="bench-btn" class="btn primary">Run Benchmark</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Runtime Output</h2>
+          <p class="hint">Command lines, benchmark summaries, and diagnostics appear here.</p>
+          <pre id="runtime-log" class="output"></pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="tab-docs" class="tab-panel">
+      <div class="grid two-col docs-grid">
+        <article class="card docs-index-card">
+          <h2>Documentation Index</h2>
+          <label>Document
+            <select id="docs-select"></select>
+          </label>
+          <p class="hint">Rendered HTML documentation for this project.</p>
+          <div id="docs-meta" class="hint"></div>
+          <h3>Table of Contents</h3>
+          <div id="docs-toc" class="docs-toc"></div>
+        </article>
+
+        <article class="card docs-viewer-card">
+          <h2>Document Viewer</h2>
+          <div id="docs-render" class="docs-render"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="tab-diagram" class="tab-panel">
+      <div class="grid two-col diagram-grid">
+        <article class="card">
+          <h2>Interactive Architecture Map</h2>
+          <p class="hint">Click a block for details. Double-click blocks with subdiagrams to drill down.</p>
+          <div class="diagram-toolbar">
+            <button id="diagram-back-btn" class="btn" type="button">Back</button>
+            <button id="diagram-zoom-out-btn" class="btn" type="button">-</button>
+            <button id="diagram-zoom-in-btn" class="btn" type="button">+</button>
+            <button id="diagram-reset-btn" class="btn" type="button">Reset View</button>
+            <span id="diagram-breadcrumb" class="diagram-breadcrumb"></span>
+            <span id="diagram-zoom-readout" class="diagram-zoom-readout">100%</span>
+          </div>
+          <div id="diagram-wrap" class="diagram-wrap">
+            <svg id="diagram-svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Drum synthesis architecture diagram"></svg>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Block Details</h2>
+          <p id="block-details" class="block-details">Select a block to inspect implementation details.</p>
+          <h3>Flow Notes</h3>
+          <div id="flow-notes" class="flow-notes"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>window.PROJECT_UI_CONFIG = { themeKey: 'u55c_drum_theme' };</script>
+  <script src="/static/common_ui.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
